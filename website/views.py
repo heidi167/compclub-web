@@ -15,7 +15,7 @@ from django.template import loader
 
 from smtplib import SMTPSenderRefused
 
-from website.forms import (EventForm, RegistrationForm, VolunteerAssignForm,
+from website.forms import (EventForm, StudentRegistrationForm, VolunteerAssignForm,
                            WorkshopForm)
 from website.models import Event, Workshop, Volunteer
 from website.utils import generate_status_email
@@ -131,7 +131,7 @@ def registration(request, event_id, slug):
     context = {'registration_form': registration_form, 'event': event}
     return render(request, 'website/registration_form.html', context)
 
-def student_registration(request) {
+def student_registration(request):
     """
     Render and show an student registration form. The form allows for the creation of new students.
 
@@ -151,7 +151,6 @@ def student_registration(request) {
 
     context = {'student_registration_form': student_registration_form}
     return render(request, 'website/student_registration.html', context)
-}
 
 
 @staff_member_required

@@ -5,6 +5,7 @@ from django import forms
 from django.forms import (DateInput, DateTimeInput, Form, ModelForm, TimeInput,
                           ValidationError)
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.forms import UserCreationForm
 
 from website.models import Event, Registration, VolunteerAssignment, Workshop, Student
 
@@ -64,10 +65,8 @@ class EventForm(ModelForm):
 ##########            FINISH BELOW            ##########
 ########################################################
 
-class StudentRegistrationForm (ModelForm):
+class StudentRegistrationForm (UserCreationForm):
     """student creation form. Creates a new student model object upon saving."""
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput);
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput);
     def __init__(self, *args, **kwargs):
         super(studentRegistrationForm, self).__init__(*args, **kwargs)
         for field in self:
@@ -75,8 +74,7 @@ class StudentRegistrationForm (ModelForm):
     
     class Meta:
         model = Student
-        fields = ('username', 'first_name', 'last_name', 'date_of_birth', 'email', 'parent_email', 'number', 'parent_number',
-                  'password1', 'password2')
+        fields = '__all__'
         widgets = {
             'date_of_birth': DatePicker()
         }
@@ -91,19 +89,6 @@ class StudentRegistrationForm (ModelForm):
             raise ValidationError(
                 _('Phone number is invalid. Must be at least 8 characters long.'),
                 code='invalid number')
-
-        password1 = cleaned_data['password1']
-        password2 = cleaned_data['password2']
-        if (password1 and password2 and password1 not password2):
-            raise ValidationError(
-                _('The passwords entered do not match.'), 
-                code='password mismatch')
-
-    def save(self):
-        """Create an object model and save it to the database"""
-        student = super().save(commit=False)
-        student.set_password(self.cleaned_data["password1"]);
-        student.save(commit=True)
 
 
 class WorkshopForm(ModelForm):
