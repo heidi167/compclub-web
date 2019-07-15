@@ -131,6 +131,28 @@ def registration(request, event_id, slug):
     context = {'registration_form': registration_form, 'event': event}
     return render(request, 'website/registration_form.html', context)
 
+def student_registration(request) {
+    """
+    Render and show an student registration form. The form allows for the creation of new students.
+
+    Args:
+        request: HTTP request header contents
+
+    Returns:
+        HTTP response containing the student registration form
+    """
+    if request.method == 'POST':
+        student_registration_form = StudentRegistrationForm(request.POST, prefix='student_registration_form')
+    if student_registration_form.is_valid():
+        student_registration_form.save()
+        return redirect('website:event_index')
+    else:
+        student_registration_form = StudentRegistrationForm(prefix='student_registration_form')
+
+    context = {'student_registration_form': student_registration_form}
+    return render(request, 'website/student_registration.html', context)
+}
+
 
 @staff_member_required
 def event_create(request):

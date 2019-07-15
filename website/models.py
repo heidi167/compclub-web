@@ -46,11 +46,13 @@ def create_or_update_volunteer(sender, instance, created, **kwargs):
 class Student(models.Model):
     """Model representing a student."""
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
-    number = models.CharField(verbose_name='phone number', max_length=15)
     date_of_birth = models.DateField()
     parent_email = models.EmailField()
     parent_number = models.CharField(
         verbose_name='parent\'s phone number', max_length=15)
+
+    def list_registered_events(self):
+        return list(self.registration_set.all())
 
     def __str__(self):
         """Return a string representation of a student."""
@@ -159,14 +161,4 @@ class Registration(models.Model):
     """Model representing a student registration."""
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    email = models.EmailField(verbose_name='email address')
-    number = models.CharField(verbose_name='phone number', max_length=15)
-    date_of_birth = models.DateField()
-    parent_email = models.EmailField()
-    parent_number = models.CharField(
-        verbose_name='parent\'s phone number', max_length=15)
-
-    def __str__(self):
-        """Return a string representation of a registration."""
-        return f"{self.name}"
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)

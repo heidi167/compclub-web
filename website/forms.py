@@ -6,7 +6,7 @@ from django.forms import (DateInput, DateTimeInput, Form, ModelForm, TimeInput,
                           ValidationError)
 from django.utils.translation import gettext_lazy as _
 
-from website.models import Event, Registration, VolunteerAssignment, Workshop
+from website.models import Event, Registration, VolunteerAssignment, Workshop, Student
 
 
 class DatePicker(DateInput):
@@ -59,6 +59,51 @@ class EventForm(ModelForm):
                     'start_date': start_date,
                     'finish_date': finish_date
                 })
+
+########################################################
+##########            FINISH BELOW            ##########
+########################################################
+
+class StudentRegistrationForm (ModelForm):
+    """student creation form. Creates a new student model object upon saving."""
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput);
+    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput);
+    def __init__(self, *args, **kwargs):
+        super(studentRegistrationForm, self).__init__(*args, **kwargs)
+        for field in self:
+            field.field.widget.attrs['class'] = 'form-control'
+    
+    class Meta:
+        model = Student
+        fields = ('username', 'first_name', 'last_name', 'date_of_birth', 'email', 'parent_email', 'number', 'parent_number',
+                  'password1', 'password2')
+        widgets = {
+            'date_of_birth': DatePicker()
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        parent_number = cleaned_data['parent_number']
+        number = cleaned_data['number']
+        pattern = r'\d{8,}'
+        if (re.search(pattern, number) is None
+                or re.search(pattern, parent_number) is None):
+            raise ValidationError(
+                _('Phone number is invalid. Must be at least 8 characters long.'),
+                code='invalid number')
+
+        password1 = cleaned_data['password1']
+        password2 = cleaned_data['password2']
+        if (password1 and password2 and password1 not password2):
+            raise ValidationError(
+                _('The passwords entered do not match.'), 
+                code='password mismatch')
+
+    def save(self):
+        """Create an object model and save it to the database"""
+        student = super().save(commit=False)
+        student.set_password(self.cleaned_data["password1"]);
+        student.save(commit=True)
 
 
 class WorkshopForm(ModelForm):
@@ -143,33 +188,32 @@ class WorkshopForm(ModelForm):
             self.make_recurring_workshops(datetime.timedelta(days=7))
 
 
-class RegistrationForm(ModelForm):
-    """Student event registration form. Creates a new Registration object upon saving."""
+# class RegistrationForm(ModelForm):
+#     """Student event registration form. Creates a new Registration object upon saving."""
 
-    def __init__(self, *args, **kwargs):
-        super(RegistrationForm, self).__init__(*args, **kwargs)
-        for field in self:
-            field.field.widget.attrs['class'] = 'form-control'
+#     def __init__(self, *args, **kwargs):
+#         super(RegistrationForm, self).__init__(*args, **kwargs)
+#         for field in self:
+#             field.field.widget.attrs['class'] = 'form-control'
 
-    class Meta:
-        model = Registration
-        fields = '__all__'
-        widgets = {
-            'date_of_birth': DatePicker,
-            'event': forms.HiddenInput(),
-        }
+#     class Meta:
+#         model = Registration
+#         fields = '__all__'
+#         widgets = {
+#             'date_of_birth': DatePicker,
+#             'event': forms.HiddenInput(),
+#         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        number = cleaned_data['number']
-        parent_number = cleaned_data['parent_number']
-        pattern = r'\d{8,}'
-        if (re.search(pattern, number) is None
-                or re.search(pattern, parent_number) is None):
-            raise ValidationError(
-                _('Phone number is invalid. Must be at least 8 characters long.'),
-                code='invalid number')
-
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         number = cleaned_data['number']
+#         parent_number = cleaned_data['parent_number']
+#         pattern = r'\d{8,}'
+#         if (re.search(pattern, number) is None
+#                 or re.search(pattern, parent_number) is None):
+#             raise ValidationError(
+#                 _('Phone number is invalid. Must be at least 8 characters long.'),
+#                 code='invalid number')
 
 class VolunteerAssignForm(Form):
     '''Form for assigning available volunteers to a workshop'''
